@@ -20,7 +20,10 @@ const userSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'user'
     }],
-    thoughts: [thoughtSchema],
+    thoughts: [{
+      type: Schema.Types.ObjectId,
+      ref: 'thought'
+    }],
   },
   {
     toJSON: {
