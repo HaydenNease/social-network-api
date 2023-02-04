@@ -51,10 +51,23 @@ module.exports = {
   },
 
   // Update a user
-  updateUser(req,res) {
-    User.findOneAndUpdate({ _id: req.params.userId})
-    
-  };
+  updateUser(req, res) {
+    User.findOneAndUpdate(
+      { _id: req.params.userId },
+      { $set: req.body },
+      {
+        runValidators: true,
+        new: true
+      }
+    )
+      .then((user) =>
+        !user
+          ? res.status(404).json({ message: 'No course with this id!' })
+          : res.json(user)
+      )
+      .catch((err) => res.status(500).json(err));
+  },
+
 
   // Delete a user and remove them from the thought
   deleteUser(req, res) {
@@ -81,14 +94,13 @@ module.exports = {
       });
   },
 
-  // Add an assignment to a user
-  addAssignment(req, res) {
-    console.log('You are adding an assignment');
+  // Add an friend to a user
+  addFriend(req, res) {
+    console.log('You are adding a friend');
     console.log(req.body);
     User.findOneAndUpdate(
       { _id: req.params.userId },
-      { $addToSet: { assignments: req.body } },
-      { runValidators: true, new: true }
+      { $addToSet: { friends: req.body } }
     )
       .then((user) =>
         !user
@@ -99,11 +111,11 @@ module.exports = {
       )
       .catch((err) => res.status(500).json(err));
   },
-  // Remove assignment from a user
-  removeAssignment(req, res) {
+  // Remove friend from a user
+  removeFriend(req, res) {
     User.findOneAndUpdate(
       { _id: req.params.userId },
-      { $pull: { assignment: { assignmentId: req.params.assignmentId } } },
+      { $pull: { friend: { friendId: req.params.friendId } } },
       { runValidators: true, new: true }
     )
       .then((user) =>
