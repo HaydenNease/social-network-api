@@ -1,19 +1,10 @@
-// ObjectId() method for converting userId string into an ObjectId for querying database
-const { ObjectId } = require('mongoose').Types;
 const { User, Thought } = require('../models');
-
-// getUsers,
-// getSingleUser,
-// createUser,
-// updateUser,
-// deleteUser,
-// addFriend,
-// removeFriend,
 
 module.exports = {
   // Get all users
   getUsers(req, res) {
     User.find()
+      .select('-__v')
       .then((users) => {
         const userObj = {
           users
@@ -27,16 +18,12 @@ module.exports = {
   },
   // Get a single user
   getSingleUser(req, res) {
-    User.findOne({ _id: req.params.userId })
+    User.findOne({ id: req.params.userId })
       .select('-__v')
-      .lean()
       .then(async (user) =>
         !user
           ? res.status(404).json({ message: 'No user with that ID' })
-          : res.json({
-            user,
-            grade: await grade(req.params.userId),
-          })
+          : res.json(user)
       )
       .catch((err) => {
         console.log(err);
@@ -53,7 +40,7 @@ module.exports = {
   // Update a user
   updateUser(req, res) {
     User.findOneAndUpdate(
-      { _id: req.params.userId },
+      { id: req.params.userId },
       { $set: req.body },
       {
         runValidators: true,
@@ -71,7 +58,7 @@ module.exports = {
 
   // Delete a user and remove them from the thought
   deleteUser(req, res) {
-    User.findOneAndRemove({ _id: req.params.userId })
+    User.findOneAndRemove({ id: req.params.userId })
       .then((user) =>
         !user
           ? res.status(404).json({ message: 'No such user exists' })
@@ -99,8 +86,8 @@ module.exports = {
     console.log('You are adding a friend');
     console.log(req.body);
     User.findOneAndUpdate(
-      { _id: req.params.userId },
-      { $addToSet: { friends: req.body } }
+      { id: req.params.userId },
+      { $addToSet: { friends: req.params.friendId } }
     )
       .then((user) =>
         !user
@@ -115,8 +102,8 @@ module.exports = {
   removeFriend(req, res) {
     User.findOneAndUpdate(
       { _id: req.params.userId },
-      { $pull: { friend: { friendId: req.params.friendId } } },
-      { runValidators: true, new: true }
+      { $pull: { friends: { friendId: req.params.friendId } } },
+      { new: true }
     )
       .then((user) =>
         !user
