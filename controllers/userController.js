@@ -49,7 +49,7 @@ module.exports = {
     )
       .then((user) =>
         !user
-          ? res.status(404).json({ message: 'No course with this id!' })
+          ? res.status(404).json({ message: 'No user with this id!' })
           : res.json(user)
       )
       .catch((err) => res.status(500).json(err));
@@ -83,20 +83,22 @@ module.exports = {
 
   // Add an friend to a user
   addFriend(req, res) {
-    console.log('You are adding a friend');
-    console.log(req.body);
-    User.findOneAndUpdate(
-      { id: req.params.userId },
-      { $addToSet: { friends: req.params.friendId } }
-    )
-      .then((user) =>
-        !user
-          ? res
-            .status(404)
-            .json({ message: 'No user found with that ID :(' })
-          : res.json(user)
-      )
-      .catch((err) => res.status(500).json(err));
+    const userAddFriend = User.findOneAndUpdate(
+      { _id: req.params.userId },
+      { $addToSet: { friends: req.params.friendId } },
+    );
+    const friendAddUser = User.findOneAndUpdate(
+      { _id: req.params.friendId },
+      { $addToSet: { friends: req.params.userId } },
+    );
+    Promise
+      .all([userAddFriend, friendAddUser])
+      .then(() => res.json({ message: 'Friend added' }))
+      .catch((err) => {
+        console.log(err)
+        res.status(500).json(err)
+      }
+      );
   },
   // Remove friend from a user
   removeFriend(req, res) {
@@ -105,6 +107,11 @@ module.exports = {
       { $pull: { friends: { friendId: req.params.friendId } } },
       { new: true }
     )
+      .then(User.findOneAndUpdate(
+        { _id: req.params.friendId },
+        { $pull: { friends: { friendId: req.params.userId } } },
+        { new: true }
+      ))
       .then((user) =>
         !user
           ? res

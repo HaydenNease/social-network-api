@@ -1,5 +1,7 @@
 const { Schema, model, Types } = require('mongoose');
 
+const reactionSchema = require('./Reaction');
+
 function timeSince(date) {
 
   var seconds = Math.floor((new Date() - date) / 1000);
@@ -28,34 +30,7 @@ function timeSince(date) {
   return Math.floor(seconds) + " seconds ago";
 }
 
-const reactionSchema = new Schema(
-  {
-    reactionID: {
-      type: Schema.Types.ObjectId,
-      default: () => new Types.ObjectId()
-    },
-    reactionBody: {
-      type: String,
-      required: true,
-      maxlength: 280,
-    },
-    username: {
-      type: String,
-      required: true
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now(),
-      get: (date) => timeSince(date)
-    }
-  },
-  {
-    toJSON: {      
-      getters: true
-    },
-    id: false,
-  }
-)
+
 
 const thoughtSchema = new Schema(
   {
