@@ -62,10 +62,8 @@ module.exports = {
       .then((user) =>
         !user
           ? res.status(404).json({ message: 'No such user exists' })
-          : Thought.findOneAndUpdate(
-            { users: req.params.userId },
-            { $pull: { users: req.params.userId } },
-            { new: true }
+          : Thought.findOneAndRemove(
+            { userId: req.params.userId },
           )
       )
       .then((thought) =>
@@ -102,23 +100,21 @@ module.exports = {
   },
   // Remove friend from a user
   removeFriend(req, res) {
-    User.findOneAndUpdate(
+    const userRemoveFriend = User.findOneAndUpdate(
       { _id: req.params.userId },
-      { $pull: { friends: { friendId: req.params.friendId } } },
-      { new: true }
-    )
-      .then(User.findOneAndUpdate(
-        { _id: req.params.friendId },
-        { $pull: { friends: { friendId: req.params.userId } } },
-        { new: true }
-      ))
-      .then((user) =>
-        !user
-          ? res
-            .status(404)
-            .json({ message: 'No user found with that ID :(' })
-          : res.json(user)
-      )
-      .catch((err) => res.status(500).json(err));
+      { $pull: { friends: req.params.friendId } },
+    );
+    const friendRemoveUser = User.findOneAndUpdate(
+      { _id: req.params.friendId },
+      { $pull: { friends: req.params.userId } },
+    );
+    Promise
+      .all([userRemoveFriend, friendRemoveUser])
+      .then(() => res.json({ message: 'Friend removed' }))
+      .catch((err) => {
+        console.log(err)
+        res.status(500).json(err)
+      }
+      );
   },
 };

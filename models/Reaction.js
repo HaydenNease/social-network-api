@@ -1,5 +1,7 @@
 const { Schema, Types } = require('mongoose');
 
+const timeSince = require('../utils/timeSince')
+
 const reactionSchema = new Schema(
   {
     reactionID: {
@@ -18,7 +20,7 @@ const reactionSchema = new Schema(
     createdAt: {
       type: Date,
       default: Date.now,
-      // get: (date) => timeSince(date)
+      get: (date) => timeSince(date)
     }
   },
   {
